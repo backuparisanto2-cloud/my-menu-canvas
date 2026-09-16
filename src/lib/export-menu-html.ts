@@ -9,14 +9,20 @@ export function buildMenuHtml() {
   const items = menuPages
     .map(
       (p, i) => `    <figure id="${p.id}" data-i="${i}" style="transition-delay:${Math.min(i, 3) * 50}ms">
-      <img src="${absolute(p.url)}" alt="${p.title} — ${p.subtitle}" width="${IMAGE_WIDTH}" height="${IMAGE_HEIGHT}" ${i < 2 ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"'} />
+      <img src="${absolute(p.url)}" alt="${p.title} — ${p.subtitle}" width="${IMAGE_WIDTH}" height="${IMAGE_HEIGHT}" ${i === 0 ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"'} />
+      <button class="wa${i === 0 ? " first" : ""}" type="button" data-i="${i}" aria-label="Bagikan ${p.title} via WhatsApp">${WA_SVG}</button>
       <button class="fav" type="button" data-id="${p.id}" aria-label="Tandai favorit ${p.title}">★</button>
     </figure>`,
     )
     .join("\n");
 
   const data = JSON.stringify(
-    menuPages.map((p) => ({ id: p.id, url: absolute(p.url), alt: `${p.title} — ${p.subtitle}` })),
+    menuPages.map((p) => ({
+      id: p.id,
+      url: absolute(p.url),
+      title: p.title,
+      alt: `${p.title} — ${p.subtitle}`,
+    })),
   );
 
   return `<!doctype html>
