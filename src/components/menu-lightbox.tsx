@@ -129,7 +129,10 @@ export function MenuLightbox({
     if (!g) return;
 
     if (pointers.current.size >= 2 && g.startDist) {
-      const [a, b] = [...pointers.current.values()];
+      const [a, b] = [...pointers.current.values()] as [
+        { x: number; y: number },
+        { x: number; y: number },
+      ];
       const dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
       const k = Math.min(4, Math.max(1, (dist / g.startDist) * g.startScale)) / g.startScale;
       setTransform({
