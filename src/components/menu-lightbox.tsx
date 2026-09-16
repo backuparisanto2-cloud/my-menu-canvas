@@ -235,7 +235,9 @@ export function MenuLightbox({
         >
           <Star className={`h-5 w-5 ${fav ? "fill-[#e8a021] text-[#e8a021]" : "text-white"}`} />
         </button>
+        </div>
       </div>
+
 
       <div
         ref={surfaceRef}
