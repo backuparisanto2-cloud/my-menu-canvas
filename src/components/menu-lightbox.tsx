@@ -93,7 +93,10 @@ export function MenuLightbox({
     setAnimating(false);
 
     if (pointers.current.size === 2) {
-      const [a, b] = [...pointers.current.values()];
+      const [a, b] = [...pointers.current.values()] as [
+        { x: number; y: number },
+        { x: number; y: number },
+      ];
       const rect = surfaceRef.current?.getBoundingClientRect();
       gesture.current = {
         startDist: Math.hypot(a.x - b.x, a.y - b.y) || 1,
