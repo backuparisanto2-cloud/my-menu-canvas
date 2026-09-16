@@ -27,14 +27,11 @@ export const Route = createFileRoute("/")({
 });
 
 function MenuApp() {
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const { isFavorite, toggleFavorite, count } = useFavorites();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [showTop, setShowTop] = useState(false);
-
-  const toggleFavorite = useCallback((id: string) => {
-    setFavorites((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]));
-  }, []);
+  const [lightbox, setLightbox] = useState<number | null>(null);
 
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > window.innerHeight);
@@ -47,7 +44,7 @@ function MenuApp() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const listed = onlyFavorites ? menuPages.filter((p) => favorites.includes(p.id)) : menuPages;
+  const listed = onlyFavorites ? menuPages.filter((p) => isFavorite(p.id)) : menuPages;
 
   return (
     <div className="min-h-screen bg-[#faf5ea]">
