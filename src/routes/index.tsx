@@ -62,9 +62,11 @@ function MenuApp() {
           <MenuFigure
             key={page.id}
             page={page}
-            priority={i === 0}
-            favorite={favorites.includes(page.id)}
+            index={i}
+            priority={i < 2}
+            favorite={isFavorite(page.id)}
             onToggle={() => toggleFavorite(page.id)}
+            onOpen={() => setLightbox(i)}
           />
         ))}
         <footer className="pb-10 pt-4 text-center text-xs text-[#5a3521]/70">
