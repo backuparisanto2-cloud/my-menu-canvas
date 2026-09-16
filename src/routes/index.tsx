@@ -198,20 +198,33 @@ function MenuFigure({
     <figure
       id={page.id}
       ref={ref}
-      className={`relative m-0 scroll-mt-2 transition-all duration-500 ease-out ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
-      }`}
+      style={{
+        transitionDelay: visible ? `${Math.min(index, 3) * 50}ms` : "0ms",
+        transform: visible ? "none" : "translate3d(0,18px,0) scale(.985)",
+        opacity: visible ? 1 : 0,
+        willChange: "transform, opacity",
+        contain: "content",
+      }}
+      className="relative m-0 scroll-mt-2 transition-[opacity,transform] duration-[600ms] ease-[cubic-bezier(.22,.61,.36,1)] motion-reduce:!transform-none motion-reduce:!opacity-100 motion-reduce:transition-none"
     >
-      <img
-        src={page.url}
-        alt={`${page.title} — ${page.subtitle}`}
-        width={IMAGE_WIDTH}
-        height={IMAGE_HEIGHT}
-        loading={priority ? "eager" : "lazy"}
-        decoding="async"
-        fetchPriority={priority ? "high" : "low"}
-        className="block h-auto w-full rounded-2xl"
-      />
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`Lihat ${page.title} layar penuh`}
+        className="block w-full cursor-zoom-in"
+      >
+        <img
+          src={page.url}
+          alt={`${page.title} — ${page.subtitle}`}
+          width={IMAGE_WIDTH}
+          height={IMAGE_HEIGHT}
+          style={{ aspectRatio: `${IMAGE_WIDTH} / ${IMAGE_HEIGHT}` }}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={priority ? "high" : "low"}
+          className="block h-auto w-full rounded-2xl"
+        />
+      </button>
       <button
         type="button"
         onClick={onToggle}
