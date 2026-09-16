@@ -112,7 +112,7 @@ function MenuApp() {
                     : "bg-[#5a3521]/10 text-[#5a3521]"
                 }`}
               >
-                Favorit saja ({favorites.length})
+                Favorit saja ({count})
               </button>
               <button
                 type="button"
