@@ -58,21 +58,25 @@ export function MenuLightbox({
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.history.pushState({ lightbox: true }, "");
-    const onPop = () => onClose();
+    let closing = false;
+    const onPop = () => {
+      if (!closing) handlers.current.close();
+    };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-      if (e.key === "ArrowRight") go(1);
-      if (e.key === "ArrowLeft") go(-1);
+      if (e.key === "Escape") handlers.current.close();
+      if (e.key === "ArrowRight") handlers.current.go(1);
+      if (e.key === "ArrowLeft") handlers.current.go(-1);
     };
     window.addEventListener("popstate", onPop);
     window.addEventListener("keydown", onKey);
     return () => {
+      closing = true;
       document.body.style.overflow = prev;
       window.removeEventListener("popstate", onPop);
       window.removeEventListener("keydown", onKey);
       if (window.history.state?.lightbox) window.history.back();
     };
-  }, [onClose, go]);
+  }, []);
 
   const zoomAt = (clientX: number, clientY: number) => {
     const rect = surfaceRef.current?.getBoundingClientRect();
