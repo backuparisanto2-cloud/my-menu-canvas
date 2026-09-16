@@ -47,6 +47,10 @@ export function buildMenuHtml() {
   .fav { position:absolute; right:12px; top:12px; border:0; border-radius:999px; padding:8px 11px;
          background:rgba(0,0,0,.38); color:#fff; font-size:16px; line-height:1; backdrop-filter:blur(4px); }
   .fav.on { color:#e8a021; }
+  .wa { position:absolute; left:12px; top:12px; border:0; border-radius:999px; padding:8px;
+        background:#25D366; color:#fff; line-height:0; box-shadow:0 2px 6px rgba(0,0,0,.25); }
+  .wa svg { display:block; }
+  #lbwa { background:#25D366; color:#fff; border:0; border-radius:999px; padding:8px; line-height:0; }
   #lb { position:fixed; inset:0; background:rgba(0,0,0,.96); display:none; flex-direction:column; z-index:60; }
   #lb.open { display:flex; animation:fade .2s ease; }
   @keyframes fade { from{opacity:0} to{opacity:1} }
