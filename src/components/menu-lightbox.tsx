@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Star, X } from "lucide-react";
 
 import { IMAGE_HEIGHT, IMAGE_WIDTH, type MenuPage } from "@/data/menu-pages";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { shareMenuImage } from "@/lib/share-menu";
 
 const MAX_SCALE = 2.5;
 
