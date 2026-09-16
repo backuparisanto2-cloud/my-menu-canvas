@@ -145,7 +145,7 @@ function MenuApp() {
                     </span>
                     <span className="block text-xs text-[#5a3521]/65">{page.subtitle}</span>
                   </span>
-                  {favorites.includes(page.id) && (
+                  {isFavorite(page.id) && (
                     <Star className="mt-0.5 h-4 w-4 shrink-0 fill-[#e8a021] text-[#e8a021]" />
                   )}
                 </button>
