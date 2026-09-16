@@ -6,6 +6,8 @@ import { menuPages, IMAGE_WIDTH, IMAGE_HEIGHT } from "@/data/menu-pages";
 import { downloadMenuHtml } from "@/lib/export-menu-html";
 import { useFavorites } from "@/hooks/use-favorites";
 import { MenuLightbox } from "@/components/menu-lightbox";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { shareMenuImage } from "@/lib/share-menu";
 
 export const Route = createFileRoute("/")({
   head: () => ({
