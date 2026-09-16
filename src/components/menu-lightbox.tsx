@@ -10,6 +10,8 @@ const IDENTITY: Transform = { scale: 1, x: 0, y: 0 };
 
 // popstate yang kita picu sendiri (mis. saat menutup) tidak boleh menutup ulang
 let suppressPop = 0;
+let pushed = false;
+let mounted = 0;
 
 export function MenuLightbox({
   pages,
