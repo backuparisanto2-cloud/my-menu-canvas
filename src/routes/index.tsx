@@ -41,6 +41,27 @@ function MenuApp() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Preload bertahap semua halaman berikutnya setelah halaman pertama siap.
+  useEffect(() => {
+    const start = () => preloadSequential(menuPages.slice(1).map((p) => p.url));
+    if (document.readyState === "complete") {
+      const t = window.setTimeout(start, 400);
+      return () => window.clearTimeout(t);
+    }
+    window.addEventListener("load", start, { once: true });
+    return () => window.removeEventListener("load", start);
+  }, []);
+
+  // Tetangga langsung halaman yang sedang dibuka layar penuh dimuat lebih dulu.
+  useEffect(() => {
+    if (lightbox === null) return;
+    preloadNow(
+      [menuPages[lightbox + 1], menuPages[lightbox - 1], menuPages[lightbox + 2]]
+        .filter(Boolean)
+        .map((p) => p!.url),
+    );
+  }, [lightbox]);
+
   const goTo = (id: string) => {
     setSidebarOpen(false);
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
