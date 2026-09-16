@@ -136,6 +136,22 @@ ${items}
   });
   document.getElementById('lbclose').addEventListener('click', close);
   lbfav.addEventListener('click', function(){ toggle(PAGES[cur].id); });
+
+  function share(i){
+    var p=PAGES[i];
+    function wa(){ window.open('https://wa.me/?text='+encodeURIComponent(p.alt+'\\n'+p.url),'_blank'); }
+    if(navigator.share && navigator.canShare){
+      fetch(p.url).then(function(r){ return r.blob(); }).then(function(b){
+        var f=new File([b], p.id+'.webp', {type:b.type||'image/webp'});
+        if(navigator.canShare({files:[f]})) return navigator.share({files:[f], title:p.title, text:p.alt});
+        wa();
+      }).catch(function(e){ if(!e || e.name!=='AbortError') wa(); });
+    } else wa();
+  }
+  document.querySelectorAll('.wa').forEach(function(b){
+    b.addEventListener('click', function(e){ e.stopPropagation(); share(+b.dataset.i); });
+  });
+  document.getElementById('lbwa').addEventListener('click', function(){ share(cur); });
   document.addEventListener('keydown', function(e){
     if(!lb.classList.contains('open')) return;
     if(e.key==='Escape') close();
