@@ -53,6 +53,9 @@ export function MenuLightbox({
     [index, pages.length, onIndexChange],
   );
 
+  const handlers = useRef({ close: onClose, go });
+  handlers.current = { close: onClose, go };
+
   // kunci scroll halaman + tombol back perangkat
   useEffect(() => {
     const prev = document.body.style.overflow;
