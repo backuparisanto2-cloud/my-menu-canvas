@@ -137,6 +137,12 @@ ${items}
   document.getElementById('lbclose').addEventListener('click', close);
   lbfav.addEventListener('click', function(){ toggle(PAGES[cur].id); });
 
+  var pre={};
+  function pl(u){ if(!u||pre[u]) return; pre[u]=1; var im=new Image(); im.decoding='async'; im.fetchPriority='low'; im.src=u; }
+  function idle(fn){ (window.requestIdleCallback||function(f){setTimeout(f,200);})(fn,{timeout:1200}); }
+  function chain(list){ var q=list.slice(); (function step(){ var u=q.shift(); if(!u) return; var im=new Image(); im.decoding='async'; im.fetchPriority='low'; im.onload=im.onerror=function(){ idle(step); }; pre[u]=1; im.src=u; })(); }
+  window.addEventListener('load', function(){ idle(function(){ chain(PAGES.slice(1).map(function(p){return p.url;}).filter(function(u){return !pre[u];})); }); });
+
   function share(i){
     var p=PAGES[i];
     function wa(){ window.open('https://wa.me/?text='+encodeURIComponent(p.alt+'\\n'+p.url),'_blank'); }

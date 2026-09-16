@@ -8,6 +8,7 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { MenuLightbox } from "@/components/menu-lightbox";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { shareMenuImage } from "@/lib/share-menu";
+import { preloadNow, preloadSequential } from "@/lib/preload-images";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -40,6 +41,27 @@ function MenuApp() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Preload bertahap semua halaman berikutnya setelah halaman pertama siap.
+  useEffect(() => {
+    const start = () => preloadSequential(menuPages.slice(1).map((p) => p.url));
+    if (document.readyState === "complete") {
+      const t = window.setTimeout(start, 400);
+      return () => window.clearTimeout(t);
+    }
+    window.addEventListener("load", start, { once: true });
+    return () => window.removeEventListener("load", start);
+  }, []);
+
+  // Tetangga langsung halaman yang sedang dibuka layar penuh dimuat lebih dulu.
+  useEffect(() => {
+    if (lightbox === null) return;
+    preloadNow(
+      [menuPages[lightbox + 1], menuPages[lightbox - 1], menuPages[lightbox + 2]]
+        .filter(Boolean)
+        .map((p) => p!.url),
+    );
+  }, [lightbox]);
 
   const goTo = (id: string) => {
     setSidebarOpen(false);
@@ -206,6 +228,14 @@ function MenuFigure({
     io.observe(el);
     return () => io.disconnect();
   }, [visible]);
+
+  // Begitu satu halaman muncul, dua halaman berikutnya disiapkan.
+  useEffect(() => {
+    if (!visible) return;
+    preloadNow(
+      menuPages.slice(index + 1, index + 3).map((p) => p.url),
+    );
+  }, [visible, index]);
 
   return (
     <figure
