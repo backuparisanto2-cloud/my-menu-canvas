@@ -8,6 +8,9 @@ const MAX_SCALE = 2.5;
 type Transform = { scale: number; x: number; y: number };
 const IDENTITY: Transform = { scale: 1, x: 0, y: 0 };
 
+// popstate yang kita picu sendiri (mis. saat menutup) tidak boleh menutup ulang
+let suppressPop = 0;
+
 export function MenuLightbox({
   pages,
   index,
