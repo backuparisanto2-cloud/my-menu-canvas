@@ -4,6 +4,8 @@ import { ArrowUp, Download, Menu, Star, X } from "lucide-react";
 
 import { menuPages, IMAGE_WIDTH, IMAGE_HEIGHT } from "@/data/menu-pages";
 import { downloadMenuHtml } from "@/lib/export-menu-html";
+import { useFavorites } from "@/hooks/use-favorites";
+import { MenuLightbox } from "@/components/menu-lightbox";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -25,14 +27,11 @@ export const Route = createFileRoute("/")({
 });
 
 function MenuApp() {
-  const [favorites, setFavorites] = useState<string[]>([]);
+  const { isFavorite, toggleFavorite, count } = useFavorites();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [showTop, setShowTop] = useState(false);
-
-  const toggleFavorite = useCallback((id: string) => {
-    setFavorites((prev) => (prev.includes(id) ? prev.filter((f) => f !== id) : [...prev, id]));
-  }, []);
+  const [lightbox, setLightbox] = useState<number | null>(null);
 
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > window.innerHeight);
@@ -45,7 +44,7 @@ function MenuApp() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const listed = onlyFavorites ? menuPages.filter((p) => favorites.includes(p.id)) : menuPages;
+  const listed = onlyFavorites ? menuPages.filter((p) => isFavorite(p.id)) : menuPages;
 
   return (
     <div className="min-h-screen bg-[#faf5ea]">
@@ -63,9 +62,11 @@ function MenuApp() {
           <MenuFigure
             key={page.id}
             page={page}
-            priority={i === 0}
-            favorite={favorites.includes(page.id)}
+            index={i}
+            priority={i < 2}
+            favorite={isFavorite(page.id)}
             onToggle={() => toggleFavorite(page.id)}
+            onOpen={() => setLightbox(i)}
           />
         ))}
         <footer className="pb-10 pt-4 text-center text-xs text-[#5a3521]/70">
@@ -111,7 +112,7 @@ function MenuApp() {
                     : "bg-[#5a3521]/10 text-[#5a3521]"
                 }`}
               >
-                Favorit saja ({favorites.length})
+                Favorit saja ({count})
               </button>
               <button
                 type="button"
@@ -144,7 +145,7 @@ function MenuApp() {
                     </span>
                     <span className="block text-xs text-[#5a3521]/65">{page.subtitle}</span>
                   </span>
-                  {favorites.includes(page.id) && (
+                  {isFavorite(page.id) && (
                     <Star className="mt-0.5 h-4 w-4 shrink-0 fill-[#e8a021] text-[#e8a021]" />
                   )}
                 </button>
@@ -153,23 +154,39 @@ function MenuApp() {
           </aside>
         </div>
       )}
+
+      {lightbox !== null && (
+        <MenuLightbox
+          pages={menuPages}
+          index={lightbox}
+          onIndexChange={setLightbox}
+          onClose={() => setLightbox(null)}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+        />
+      )}
     </div>
   );
 }
 
 function MenuFigure({
   page,
+  index,
   priority,
   favorite,
   onToggle,
+  onOpen,
 }: {
   page: (typeof menuPages)[number];
+  index: number;
   priority: boolean;
   favorite: boolean;
   onToggle: () => void;
+  onOpen: () => void;
 }) {
   const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(priority);
+
 
   useEffect(() => {
     if (visible) return;
@@ -192,20 +209,33 @@ function MenuFigure({
     <figure
       id={page.id}
       ref={ref}
-      className={`relative m-0 scroll-mt-2 transition-all duration-500 ease-out ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
-      }`}
+      style={{
+        transitionDelay: visible ? `${Math.min(index, 3) * 50}ms` : "0ms",
+        transform: visible ? "none" : "translate3d(0,18px,0) scale(.985)",
+        opacity: visible ? 1 : 0,
+        willChange: "transform, opacity",
+        contain: "content",
+      }}
+      className="relative m-0 scroll-mt-2 transition-[opacity,transform] duration-[600ms] ease-[cubic-bezier(.22,.61,.36,1)] motion-reduce:!transform-none motion-reduce:!opacity-100 motion-reduce:transition-none"
     >
-      <img
-        src={page.url}
-        alt={`${page.title} — ${page.subtitle}`}
-        width={IMAGE_WIDTH}
-        height={IMAGE_HEIGHT}
-        loading={priority ? "eager" : "lazy"}
-        decoding="async"
-        fetchPriority={priority ? "high" : "low"}
-        className="block h-auto w-full rounded-2xl"
-      />
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`Lihat ${page.title} layar penuh`}
+        className="block w-full cursor-zoom-in"
+      >
+        <img
+          src={page.url}
+          alt={`${page.title} — ${page.subtitle}`}
+          width={IMAGE_WIDTH}
+          height={IMAGE_HEIGHT}
+          style={{ aspectRatio: `${IMAGE_WIDTH} / ${IMAGE_HEIGHT}` }}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={priority ? "high" : "low"}
+          className="block h-auto w-full rounded-2xl"
+        />
+      </button>
       <button
         type="button"
         onClick={onToggle}
