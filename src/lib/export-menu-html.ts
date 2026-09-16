@@ -75,7 +75,10 @@ ${items}
   <div id="lbbar">
     <button id="lbclose" aria-label="Tutup">✕</button>
     <span id="lbcount"></span>
-    <button id="lbfav" aria-label="Favorit">★</button>
+    <span style="display:flex;gap:8px;align-items:center">
+      <button id="lbwa" aria-label="Bagikan via WhatsApp">${WA_SVG}</button>
+      <button id="lbfav" aria-label="Favorit">★</button>
+    </span>
   </div>
   <div id="lbstage"><div id="lbwrap"><img id="lbimg" alt="" /></div></div>
   <div id="lbhint">Ketuk dua kali untuk memperbesar · geser untuk pindah halaman</div>
