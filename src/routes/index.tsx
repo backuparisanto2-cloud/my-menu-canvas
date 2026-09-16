@@ -8,6 +8,7 @@ import { useFavorites } from "@/hooks/use-favorites";
 import { MenuLightbox } from "@/components/menu-lightbox";
 import { WhatsAppIcon } from "@/components/whatsapp-icon";
 import { shareMenuImage } from "@/lib/share-menu";
+import { preloadNow, preloadSequential } from "@/lib/preload-images";
 
 export const Route = createFileRoute("/")({
   head: () => ({
