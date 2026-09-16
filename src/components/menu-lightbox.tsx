@@ -64,9 +64,12 @@ export function MenuLightbox({
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     window.history.pushState({ lightbox: true }, "");
-    let closing = false;
     const onPop = () => {
-      if (!closing) handlers.current.close();
+      if (suppressPop > 0) {
+        suppressPop -= 1;
+        return;
+      }
+      handlers.current.close();
     };
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") handlers.current.close();
