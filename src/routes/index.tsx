@@ -4,6 +4,8 @@ import { ArrowUp, Download, Menu, Star, X } from "lucide-react";
 
 import { menuPages, IMAGE_WIDTH, IMAGE_HEIGHT } from "@/data/menu-pages";
 import { downloadMenuHtml } from "@/lib/export-menu-html";
+import { useFavorites } from "@/hooks/use-favorites";
+import { MenuLightbox } from "@/components/menu-lightbox";
 
 export const Route = createFileRoute("/")({
   head: () => ({
