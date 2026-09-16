@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, Star, X } from "lucide-react";
 
 import { IMAGE_HEIGHT, IMAGE_WIDTH, type MenuPage } from "@/data/menu-pages";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { shareMenuImage } from "@/lib/share-menu";
 
 const MAX_SCALE = 2.5;
 
@@ -217,6 +219,15 @@ export function MenuLightbox({
         <span className="text-xs font-semibold tracking-wide text-white/80">
           {index + 1} / {pages.length}
         </span>
+        <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => void shareMenuImage(page)}
+          aria-label="Bagikan via WhatsApp"
+          className="rounded-full bg-[#25D366] p-2.5 text-white transition-transform active:scale-90"
+        >
+          <WhatsAppIcon className="h-5 w-5" />
+        </button>
         <button
           type="button"
           onClick={() => onToggleFavorite(page.id)}
@@ -226,7 +237,9 @@ export function MenuLightbox({
         >
           <Star className={`h-5 w-5 ${fav ? "fill-[#e8a021] text-[#e8a021]" : "text-white"}`} />
         </button>
+        </div>
       </div>
+
 
       <div
         ref={surfaceRef}

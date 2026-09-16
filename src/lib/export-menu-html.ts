@@ -5,18 +5,27 @@ function absolute(url: string) {
   return new URL(url, window.location.origin).href;
 }
 
+const WA_SVG =
+  '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22c5.46 0 9.92-4.45 9.92-9.93C21.96 6.45 17.5 2 12.04 2Zm0 18.02a8.2 8.2 0 0 1-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.17 8.17 0 0 1-1.25-4.35c0-4.54 3.7-8.23 8.24-8.23a8.24 8.24 0 0 1 0 16.44Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.13-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.43.13-.15.17-.25.25-.41.09-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.43h-.48c-.16 0-.43.06-.65.31-.22.25-.85.84-.85 2.04s.87 2.37 1 2.53c.12.17 1.71 2.61 4.14 3.66.58.25 1.03.4 1.38.51.58.19 1.11.16 1.53.1.47-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.15-1.18-.06-.1-.23-.16-.48-.29Z"/></svg>';
+
 export function buildMenuHtml() {
   const items = menuPages
     .map(
       (p, i) => `    <figure id="${p.id}" data-i="${i}" style="transition-delay:${Math.min(i, 3) * 50}ms">
-      <img src="${absolute(p.url)}" alt="${p.title} — ${p.subtitle}" width="${IMAGE_WIDTH}" height="${IMAGE_HEIGHT}" ${i < 2 ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"'} />
+      <img src="${absolute(p.url)}" alt="${p.title} — ${p.subtitle}" width="${IMAGE_WIDTH}" height="${IMAGE_HEIGHT}" ${i === 0 ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"'} />
+      <button class="wa${i === 0 ? " first" : ""}" type="button" data-i="${i}" aria-label="Bagikan ${p.title} via WhatsApp">${WA_SVG}</button>
       <button class="fav" type="button" data-id="${p.id}" aria-label="Tandai favorit ${p.title}">★</button>
     </figure>`,
     )
     .join("\n");
 
   const data = JSON.stringify(
-    menuPages.map((p) => ({ id: p.id, url: absolute(p.url), alt: `${p.title} — ${p.subtitle}` })),
+    menuPages.map((p) => ({
+      id: p.id,
+      url: absolute(p.url),
+      title: p.title,
+      alt: `${p.title} — ${p.subtitle}`,
+    })),
   );
 
   return `<!doctype html>
@@ -38,6 +47,10 @@ export function buildMenuHtml() {
   .fav { position:absolute; right:12px; top:12px; border:0; border-radius:999px; padding:8px 11px;
          background:rgba(0,0,0,.38); color:#fff; font-size:16px; line-height:1; backdrop-filter:blur(4px); }
   .fav.on { color:#e8a021; }
+  .wa { position:absolute; left:12px; top:12px; border:0; border-radius:999px; padding:8px;
+        background:#25D366; color:#fff; line-height:0; box-shadow:0 2px 6px rgba(0,0,0,.25); }
+  .wa svg { display:block; }
+  #lbwa { background:#25D366; color:#fff; border:0; border-radius:999px; padding:8px; line-height:0; }
   #lb { position:fixed; inset:0; background:rgba(0,0,0,.96); display:none; flex-direction:column; z-index:60; }
   #lb.open { display:flex; animation:fade .2s ease; }
   @keyframes fade { from{opacity:0} to{opacity:1} }
@@ -62,7 +75,10 @@ ${items}
   <div id="lbbar">
     <button id="lbclose" aria-label="Tutup">✕</button>
     <span id="lbcount"></span>
-    <button id="lbfav" aria-label="Favorit">★</button>
+    <span style="display:flex;gap:8px;align-items:center">
+      <button id="lbwa" aria-label="Bagikan via WhatsApp">${WA_SVG}</button>
+      <button id="lbfav" aria-label="Favorit">★</button>
+    </span>
   </div>
   <div id="lbstage"><div id="lbwrap"><img id="lbimg" alt="" /></div></div>
   <div id="lbhint">Ketuk dua kali untuk memperbesar · geser untuk pindah halaman</div>
@@ -120,6 +136,22 @@ ${items}
   });
   document.getElementById('lbclose').addEventListener('click', close);
   lbfav.addEventListener('click', function(){ toggle(PAGES[cur].id); });
+
+  function share(i){
+    var p=PAGES[i];
+    function wa(){ window.open('https://wa.me/?text='+encodeURIComponent(p.alt+'\\n'+p.url),'_blank'); }
+    if(navigator.share && navigator.canShare){
+      fetch(p.url).then(function(r){ return r.blob(); }).then(function(b){
+        var f=new File([b], p.id+'.webp', {type:b.type||'image/webp'});
+        if(navigator.canShare({files:[f]})) return navigator.share({files:[f], title:p.title, text:p.alt});
+        wa();
+      }).catch(function(e){ if(!e || e.name!=='AbortError') wa(); });
+    } else wa();
+  }
+  document.querySelectorAll('.wa').forEach(function(b){
+    b.addEventListener('click', function(e){ e.stopPropagation(); share(+b.dataset.i); });
+  });
+  document.getElementById('lbwa').addEventListener('click', function(){ share(cur); });
   document.addEventListener('keydown', function(e){
     if(!lb.classList.contains('open')) return;
     if(e.key==='Escape') close();

@@ -6,6 +6,8 @@ import { menuPages, IMAGE_WIDTH, IMAGE_HEIGHT } from "@/data/menu-pages";
 import { downloadMenuHtml } from "@/lib/export-menu-html";
 import { useFavorites } from "@/hooks/use-favorites";
 import { MenuLightbox } from "@/components/menu-lightbox";
+import { WhatsAppIcon } from "@/components/whatsapp-icon";
+import { shareMenuImage } from "@/lib/share-menu";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -63,7 +65,7 @@ function MenuApp() {
             key={page.id}
             page={page}
             index={i}
-            priority={i < 2}
+            priority={i === 0}
             favorite={isFavorite(page.id)}
             onToggle={() => toggleFavorite(page.id)}
             onOpen={() => setLightbox(i)}
@@ -235,6 +237,16 @@ function MenuFigure({
           fetchPriority={priority ? "high" : "low"}
           className="block h-auto w-full rounded-2xl"
         />
+      </button>
+      <button
+        type="button"
+        onClick={() => void shareMenuImage(page)}
+        aria-label={`Bagikan ${page.title} via WhatsApp`}
+        className={`absolute left-3 rounded-full bg-[#25D366] p-2.5 text-white shadow-md transition-transform active:scale-90 ${
+          index === 0 ? "top-[4.25rem]" : "top-3"
+        }`}
+      >
+        <WhatsAppIcon className="h-5 w-5" />
       </button>
       <button
         type="button"
