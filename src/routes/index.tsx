@@ -229,6 +229,14 @@ function MenuFigure({
     return () => io.disconnect();
   }, [visible]);
 
+  // Begitu satu halaman muncul, dua halaman berikutnya disiapkan.
+  useEffect(() => {
+    if (!visible) return;
+    preloadNow(
+      menuPages.slice(index + 1, index + 3).map((p) => p.url),
+    );
+  }, [visible, index]);
+
   return (
     <figure
       id={page.id}
