@@ -154,6 +154,17 @@ function MenuApp() {
           </aside>
         </div>
       )}
+
+      {lightbox !== null && (
+        <MenuLightbox
+          pages={menuPages}
+          index={lightbox}
+          onIndexChange={setLightbox}
+          onClose={() => setLightbox(null)}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+        />
+      )}
     </div>
   );
 }
