@@ -63,8 +63,13 @@ export function MenuLightbox({
   useEffect(() => {
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    window.history.pushState({ lightbox: true }, "");
+    mounted += 1;
+    if (!pushed) {
+      pushed = true;
+      window.history.pushState({ lightbox: true }, "");
+    }
     const onPop = () => {
+      pushed = false;
       if (suppressPop > 0) {
         suppressPop -= 1;
         return;
@@ -79,13 +84,18 @@ export function MenuLightbox({
     window.addEventListener("popstate", onPop);
     window.addEventListener("keydown", onKey);
     return () => {
+      mounted -= 1;
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
-      if (window.history.state?.lightbox) {
-        suppressPop += 1;
-        window.history.back();
-      }
-      window.setTimeout(() => window.removeEventListener("popstate", onPop), 0);
+      window.setTimeout(() => {
+        window.removeEventListener("popstate", onPop);
+        // hanya mundur bila benar-benar tertutup (bukan remount mode pengembangan)
+        if (mounted === 0 && pushed) {
+          pushed = false;
+          suppressPop += 1;
+          window.history.back();
+        }
+      }, 0);
     };
   }, []);
 
