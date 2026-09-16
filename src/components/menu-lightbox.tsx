@@ -79,11 +79,13 @@ export function MenuLightbox({
     window.addEventListener("popstate", onPop);
     window.addEventListener("keydown", onKey);
     return () => {
-      closing = true;
       document.body.style.overflow = prev;
-      window.removeEventListener("popstate", onPop);
       window.removeEventListener("keydown", onKey);
-      if (window.history.state?.lightbox) window.history.back();
+      if (window.history.state?.lightbox) {
+        suppressPop += 1;
+        window.history.back();
+      }
+      window.setTimeout(() => window.removeEventListener("popstate", onPop), 0);
     };
   }, []);
 
