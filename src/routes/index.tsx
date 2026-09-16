@@ -65,7 +65,7 @@ function MenuApp() {
             key={page.id}
             page={page}
             index={i}
-            priority={i < 2}
+            priority={i === 0}
             favorite={isFavorite(page.id)}
             onToggle={() => toggleFavorite(page.id)}
             onOpen={() => setLightbox(i)}
