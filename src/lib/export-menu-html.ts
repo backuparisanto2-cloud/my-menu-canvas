@@ -8,40 +8,170 @@ function absolute(url: string) {
 export function buildMenuHtml() {
   const items = menuPages
     .map(
-      (p, i) => `    <figure id="${p.id}">
-      <img src="${absolute(p.url)}" alt="${p.title} — ${p.subtitle}" width="${IMAGE_WIDTH}" height="${IMAGE_HEIGHT}" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"'} />
+      (p, i) => `    <figure id="${p.id}" data-i="${i}" style="transition-delay:${Math.min(i, 3) * 50}ms">
+      <img src="${absolute(p.url)}" alt="${p.title} — ${p.subtitle}" width="${IMAGE_WIDTH}" height="${IMAGE_HEIGHT}" ${i < 2 ? 'fetchpriority="high" decoding="async"' : 'loading="lazy" decoding="async"'} />
+      <button class="fav" type="button" data-id="${p.id}" aria-label="Tandai favorit ${p.title}">★</button>
     </figure>`,
     )
     .join("\n");
+
+  const data = JSON.stringify(
+    menuPages.map((p) => ({ id: p.id, url: absolute(p.url), alt: `${p.title} — ${p.subtitle}` })),
+  );
 
   return `<!doctype html>
 <html lang="id">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Menu Kantin Inyong — Umaeh Inyong Purwokerto</title>
 <style>
   :root { color-scheme: light; }
+  * { -webkit-tap-highlight-color: transparent; }
   body { margin:0; background:#faf5ea; font-family: system-ui, -apple-system, sans-serif; }
   main { display:flex; flex-direction:column; gap:12px; padding:12px; max-width:720px; margin:0 auto; }
-  figure { margin:0; opacity:0; transform:translateY(12px); transition:opacity .5s ease, transform .5s ease; }
+  figure { position:relative; margin:0; opacity:0; transform:translate3d(0,18px,0) scale(.985);
+           transition:opacity .6s cubic-bezier(.22,.61,.36,1), transform .6s cubic-bezier(.22,.61,.36,1);
+           will-change:transform,opacity; contain:content; }
   figure.in { opacity:1; transform:none; }
-  img { width:100%; height:auto; display:block; border-radius:14px; }
-  @media (prefers-reduced-motion: reduce){ figure{opacity:1;transform:none;transition:none} }
+  img { width:100%; height:auto; display:block; border-radius:14px; aspect-ratio:${IMAGE_WIDTH}/${IMAGE_HEIGHT}; cursor:zoom-in; }
+  .fav { position:absolute; right:12px; top:12px; border:0; border-radius:999px; padding:8px 11px;
+         background:rgba(0,0,0,.38); color:#fff; font-size:16px; line-height:1; backdrop-filter:blur(4px); }
+  .fav.on { color:#e8a021; }
+  #lb { position:fixed; inset:0; background:rgba(0,0,0,.96); display:none; flex-direction:column; z-index:60; }
+  #lb.open { display:flex; animation:fade .2s ease; }
+  @keyframes fade { from{opacity:0} to{opacity:1} }
+  #lbbar { display:flex; align-items:center; justify-content:space-between; color:#fff; padding:12px; font-size:13px; }
+  #lbbar button { background:rgba(255,255,255,.12); border:0; color:#fff; border-radius:999px; padding:8px 12px; font-size:15px; }
+  #lbstage { flex:1; overflow:hidden; touch-action:none; position:relative; }
+  #lbwrap { height:100%; width:100%; display:flex; align-items:center; justify-content:center;
+            transform-origin:0 0; will-change:transform; }
+  #lbimg { max-width:100%; max-height:100%; width:auto; height:auto; border-radius:8px; cursor:auto;
+           animation:pop .3s cubic-bezier(.22,.61,.36,1); }
+  @keyframes pop { from{opacity:0; transform:scale(.96)} to{opacity:1; transform:none} }
+  #lbhint { color:rgba(255,255,255,.6); font-size:11px; text-align:center; padding:8px 12px 20px; }
+  @media (prefers-reduced-motion: reduce){ figure{opacity:1;transform:none;transition:none} #lbimg,#lb{animation:none} }
 </style>
 </head>
 <body>
 <main>
 ${items}
 </main>
+
+<div id="lb" role="dialog" aria-modal="true">
+  <div id="lbbar">
+    <button id="lbclose" aria-label="Tutup">✕</button>
+    <span id="lbcount"></span>
+    <button id="lbfav" aria-label="Favorit">★</button>
+  </div>
+  <div id="lbstage"><div id="lbwrap"><img id="lbimg" alt="" /></div></div>
+  <div id="lbhint">Ketuk dua kali untuk memperbesar · geser untuk pindah halaman</div>
+</div>
+
 <script>
-  var els = document.querySelectorAll('figure');
+(function(){
+  var PAGES = ${data};
+  var KEY='inyong-fav-v1', TTL=3600000;
+  function readFav(){ try{ var m=JSON.parse(localStorage.getItem(KEY)||'{}')||{}, n={}, t=Date.now();
+    for(var k in m){ if(t-m[k]<TTL) n[k]=m[k]; } return n; }catch(e){ return {}; } }
+  function writeFav(m){ try{ localStorage.setItem(KEY, JSON.stringify(m)); }catch(e){} }
+  var fav = readFav();
+  function paint(){
+    document.querySelectorAll('.fav').forEach(function(b){ b.classList.toggle('on', !!fav[b.dataset.id]); });
+    var p = PAGES[cur]; if(p) lbfav.classList.toggle('on', !!fav[p.id]);
+  }
+  function toggle(id){ fav=readFav(); if(fav[id]) delete fav[id]; else fav[id]=Date.now(); writeFav(fav); paint(); }
+  document.querySelectorAll('.fav').forEach(function(b){
+    b.addEventListener('click', function(e){ e.stopPropagation(); toggle(b.dataset.id); });
+  });
+  setInterval(function(){ fav=readFav(); paint(); }, 60000);
+
+  var figs = document.querySelectorAll('figure');
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function(es){
       es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
-    }, { rootMargin: '80px' });
-    els.forEach(function(el){ io.observe(el); });
-  } else { els.forEach(function(el){ el.classList.add('in'); }); }
+    }, { rootMargin: '120px' });
+    figs.forEach(function(el){ io.observe(el); });
+  } else { figs.forEach(function(el){ el.classList.add('in'); }); }
+
+  var lb=document.getElementById('lb'), lbimg=document.getElementById('lbimg'),
+      lbwrap=document.getElementById('lbwrap'), lbstage=document.getElementById('lbstage'),
+      lbcount=document.getElementById('lbcount'), lbfav=document.getElementById('lbfav');
+  var cur=0, t={s:1,x:0,y:0}, drag=0, anim=true, pts={}, n=0, g=null, lastTap=0;
+
+  function apply(){
+    lbwrap.style.transition = anim ? 'transform .28s cubic-bezier(.22,.61,.36,1)' : 'none';
+    lbwrap.style.transform = 'translate3d('+(t.x+drag)+'px,'+t.y+'px,0) scale('+t.s+')';
+  }
+  function show(i){
+    cur=i; t={s:1,x:0,y:0}; drag=0; anim=true;
+    lbimg.src=PAGES[i].url; lbimg.alt=PAGES[i].alt;
+    lbimg.style.animation='none'; void lbimg.offsetWidth; lbimg.style.animation='';
+    lbcount.textContent=(i+1)+' / '+PAGES.length; apply(); paint();
+  }
+  function open(i){ lb.classList.add('open'); document.body.style.overflow='hidden'; show(i);
+    try{ history.pushState({lb:1},''); }catch(e){} }
+  function close(){ lb.classList.remove('open'); document.body.style.overflow='';
+    if(history.state && history.state.lb) history.back(); }
+  window.addEventListener('popstate', function(){ if(lb.classList.contains('open')){ lb.classList.remove('open'); document.body.style.overflow=''; } });
+
+  document.querySelectorAll('figure img').forEach(function(img, i){
+    img.addEventListener('click', function(){ open(i); });
+  });
+  document.getElementById('lbclose').addEventListener('click', close);
+  lbfav.addEventListener('click', function(){ toggle(PAGES[cur].id); });
+  document.addEventListener('keydown', function(e){
+    if(!lb.classList.contains('open')) return;
+    if(e.key==='Escape') close();
+    if(e.key==='ArrowRight' && cur<PAGES.length-1) show(cur+1);
+    if(e.key==='ArrowLeft' && cur>0) show(cur-1);
+  });
+
+  function mid(){ var a=[],k; for(k in pts) a.push(pts[k]); return a; }
+  lbstage.addEventListener('pointerdown', function(e){
+    pts[e.pointerId]={x:e.clientX,y:e.clientY}; n++; anim=false;
+    var r=lbstage.getBoundingClientRect(), a=mid();
+    if(n===2){ g={d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1,s:t.s,x:t.x,y:t.y,
+      mx:(a[0].x+a[1].x)/2,my:(a[0].y+a[1].y)/2,ox:(a[0].x+a[1].x)/2-r.left,oy:(a[0].y+a[1].y)/2-r.top}; }
+    else if(n===1){ g={d:0,s:t.s,x:t.x,y:t.y,mx:e.clientX,my:e.clientY,ox:0,oy:0}; }
+  });
+  lbstage.addEventListener('pointermove', function(e){
+    if(!pts[e.pointerId]||!g) return;
+    pts[e.pointerId]={x:e.clientX,y:e.clientY};
+    var a=mid();
+    if(n>=2 && g.d){
+      var d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)||1;
+      var k=Math.min(4,Math.max(1,(d/g.d)*g.s))/g.s;
+      t={s:g.s*k, x:g.ox-(g.ox-g.x)*k, y:g.oy-(g.oy-g.y)*k}; apply(); return;
+    }
+    var dx=e.clientX-g.mx, dy=e.clientY-g.my;
+    if(t.s>1.01){ t={s:g.s,x:g.x+dx,y:g.y+dy}; apply(); }
+    else if(Math.abs(dx)>Math.abs(dy)){ drag=dx; apply(); }
+  });
+  function end(e){
+    delete pts[e.pointerId]; n=Math.max(0,n-1);
+    if(n>0) return;
+    g=null; anim=true;
+    var moved=Math.abs(drag)>8;
+    if(t.s<=1.01){
+      if(drag<-60 && cur<PAGES.length-1){ drag=0; show(cur+1); return; }
+      if(drag>60 && cur>0){ drag=0; show(cur-1); return; }
+      drag=0;
+    }
+    apply();
+    if(moved) return;
+    var now=Date.now();
+    if(now-lastTap<300){
+      lastTap=0;
+      var r=lbstage.getBoundingClientRect(), px=e.clientX-r.left, py=e.clientY-r.top;
+      if(t.s>1.01){ t={s:1,x:0,y:0}; }
+      else { var k=2.5; t={s:k,x:px-(px-t.x)*k,y:py-(py-t.y)*k}; }
+      apply();
+    } else { lastTap=now; }
+  }
+  lbstage.addEventListener('pointerup', end);
+  lbstage.addEventListener('pointercancel', end);
+})();
 </script>
 </body>
 </html>`;
