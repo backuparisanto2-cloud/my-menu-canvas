@@ -160,17 +160,22 @@ function MenuApp() {
 
 function MenuFigure({
   page,
+  index,
   priority,
   favorite,
   onToggle,
+  onOpen,
 }: {
   page: (typeof menuPages)[number];
+  index: number;
   priority: boolean;
   favorite: boolean;
   onToggle: () => void;
+  onOpen: () => void;
 }) {
   const ref = useRef<HTMLElement | null>(null);
   const [visible, setVisible] = useState(priority);
+
 
   useEffect(() => {
     if (visible) return;
